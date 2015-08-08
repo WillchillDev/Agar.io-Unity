@@ -47,7 +47,8 @@ public class PlayerController : MonoBehaviour {
 		cam.offset += new Vector3(0f, s, -s);
 		//Increase the size
 		transform.localScale += new Vector3(s, s, s); //Sally's silly snakes slithered sideways, shifting Sharon's silly sausages. SSS
-		//Adjust the mass for slower movement
-		rb.mass += 0.5f * s;
+
+		//Adjust the speed for slower movement
+		rb.mass = size / 20;
 	}
 }
