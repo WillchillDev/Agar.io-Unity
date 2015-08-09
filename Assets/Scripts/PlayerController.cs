@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
-public class PlayerController : MonoBehaviour
-{
+public class PlayerController : MonoBehaviour {
 	private Rigidbody rb;
 	public float speed;
 
@@ -28,9 +26,7 @@ public class PlayerController : MonoBehaviour
 		float moveVertical = Input.GetAxis("Vertical");
 
 		Vector3 movement = new Vector3(moveHorizontal * speed, 0.0f, moveVertical * speed);
-		Vector3 torque = new Vector3(moveVertical * speed, 0.0f, -moveHorizontal * speed);
 		rb.AddForce(movement);
-		rb.AddTorque(torque, ForceMode.Force);
 	}
 
 	void Update()
@@ -42,10 +38,8 @@ public class PlayerController : MonoBehaviour
 		{
 			if (timeSinceEat > 3.0 && size > 9)
 			{
-				float sizeLost = (size - size * Mathf.Pow(0.998f, Time.time - timeSinceEat)) / 10;
+				float sizeLost = (size - size * Mathf.Pow(0.998f, Time.time - timeSinceEat)) / 15;
 				AddSize(-sizeLost);
-				print(sizeLost.ToString());
-
 				timeSinceDecay = 0;
 			}
 		}
@@ -58,6 +52,14 @@ public class PlayerController : MonoBehaviour
 		{
 			AddSize(1.0f);
 			//Destroy the object. This kills the object and all of its children.
+			Destroy(other.gameObject);
+			timeSinceEat = 0;
+		}
+		//If the collision is an enemy
+		if (other.gameObject.CompareTag("Enemy") && other.GetComponent<EnemyController>().size < size)
+		{
+			AddSize(other.GetComponent<EnemyController>().size * 2);
+
 			Destroy(other.gameObject);
 			timeSinceEat = 0;
 		}
@@ -95,9 +97,9 @@ public class PlayerController : MonoBehaviour
 		}
 
 		//Adjust the speed for slower movement		
-		if (rb.mass < 2)
+		if (speed > 2)
 		{
-			rb.mass += s / 20;
+			speed += s / 20;
 		}
 	}
 
@@ -105,7 +107,7 @@ public class PlayerController : MonoBehaviour
 	{
 		//Adjust the camera to fit the larger sphere
 		cam.offset += Vector3.Lerp(cam.transform.position, new Vector3(0f, Scale.y, -Scale.z), 2f);
-		//Adjust size of cube
+		//Adjust size of sphere
 		transform.localScale += Vector3.Lerp(transform.localScale, Scale, 2f);
 	}
 }

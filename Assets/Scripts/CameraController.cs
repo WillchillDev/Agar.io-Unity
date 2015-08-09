@@ -2,21 +2,24 @@
 using System.Collections;
 
 public class CameraController : MonoBehaviour {
-    public GameObject player;
-	public float smoothing = 5f;
+    public GameObject target;
+	public float smoothing = 2f;
     public Vector3 offset;
-	public float tiltAngle = 30.0f;
 
 	void Start()
 	{
-		offset = transform.position - player.transform.position;
 	}
 
 	void FixedUpdate()
 	{
-		//transform.position = target.transform.position + offset;
-		Vector3 desiredPosition = player.transform.position + offset;
-		transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * smoothing);
-		transform.LookAt(player.transform.position);
+		if(GameObject.FindGameObjectWithTag("Player") == target)
+		{
+			offset = new Vector3(0.0f, target.GetComponent<PlayerController>().size + 15, -target.GetComponent<PlayerController>().size - 20);
+		} else {
+			offset = new Vector3(0.0f, target.GetComponent<EnemyController>().size + 15, -target.GetComponent<EnemyController>().size - 20);
+		}
+			
+			transform.position = target.transform.position + offset;
+			//transform.LookAt(target.transform.position);
 	}
 }
