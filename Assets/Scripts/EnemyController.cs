@@ -65,7 +65,7 @@ public class EnemyController : MonoBehaviour {
 		{
 			if (timeSinceEat > 3.0 && size > 9)
 			{
-				float sizeLost = (size - size * Mathf.Pow(0.998f, Time.time - timeSinceEat)) / 10;
+				float sizeLost = (size - size * Mathf.Pow(0.998f, Time.time - timeSinceEat)) / 15;
 				AddSize(-sizeLost);
 				timeSinceDecay = 0;
 			}

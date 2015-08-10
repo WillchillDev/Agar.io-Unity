@@ -14,9 +14,9 @@ public class CameraController : MonoBehaviour {
 	{
 		if(GameObject.FindGameObjectWithTag("Player") == target)
 		{
-			offset = new Vector3(0.0f, target.GetComponent<PlayerController>().size + 15, -target.GetComponent<PlayerController>().size - 20);
+			offset = new Vector3(0.0f, target.GetComponent<PlayerController>().size / 2 + 15, -target.GetComponent<PlayerController>().size / 2- 20);
 		} else {
-			offset = new Vector3(0.0f, target.GetComponent<EnemyController>().size + 15, -target.GetComponent<EnemyController>().size - 20);
+			offset = new Vector3(0.0f, target.GetComponent<EnemyController>().size  / 2 + 15, -target.GetComponent<EnemyController>().size / 2 - 20);
 		}
 			
 			transform.position = target.transform.position + offset;

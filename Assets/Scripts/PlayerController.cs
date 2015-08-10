@@ -70,31 +70,7 @@ public class PlayerController : MonoBehaviour {
 		size += s;
 		SizeText.text = "Size: " + size.ToString();
 
-		if (size < 10)
-		{
-			//Increase the size by S units
-			AddScale(new Vector3(s, s, s));
-		}
-		else if (size < 20)
-		{
-			//Increase the size by S / 1.5 units
-			AddScale(new Vector3(s / 1.5f, s / 1.5f, s / 1.5f));
-		}
-		else if (size < 50)
-		{
-			//Increase the size by S / 2 units
-			AddScale(new Vector3(s / 2f, s / 2f, s / 2f));
-		}
-		else if (size < 100)
-		{
-			//Increase the size by S / 3 units
-			AddScale(new Vector3(s / 3, s / 3, s / 3));
-		}
-		else if (size < 200)
-		{
-			//Increase the size by S / 5 units
-			AddScale(new Vector3(s / 5, s / 5, s / 5));
-		}
+		AddScale(new Vector3(s / 5, s / 5, s / 5));
 
 		//Adjust the speed for slower movement		
 		if (speed > 2)
