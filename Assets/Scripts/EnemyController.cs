@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Linq;
 
 public class EnemyController : MonoBehaviour {
 
@@ -8,12 +9,18 @@ public class EnemyController : MonoBehaviour {
 	public float size = 0;
 	private float speed = 5;
 
+	public Vector3 detectRadius = new Vector3(20, 20, 20);
+
 	private float timeSinceEat;
 	private float timeSinceDecay;
 
 	private Vector3 newTransform;
 
 	private GameObject target;
+
+	private GameObject closestPlayer;
+	private GameObject closestEnemy;
+	private GameObject closestFood;
 
 	void Start()
 	{
@@ -44,20 +51,33 @@ public class EnemyController : MonoBehaviour {
 
 	void FixedUpdate()
 	{
-		//Movement()
-		System.Random rand = new System.Random();
+		//Movement();
+		/*System.Random rand = new System.Random();
         bool x = rand.NextDouble() >= 0.5;
 		bool z = rand.NextDouble() >= 0.5;
 		int xint = 0;
 		int zint = 0;
 		if (x) xint = 1; else xint = -1;
 		if (z) zint = 1; else zint = -1;
-        Vector3 movement = new Vector3(xint * speed, 0f, zint * speed);
-		rb.AddForce(movement);
+        Vector3 movement = new Vector3(xint * speed, 0f, zint * speed);*/
+		//rb.AddForce(movement);
 	}
 
 	void Update()
 	{
+		target = null;
+		closestPlayer = null;
+		closestEnemy = null;
+		closestFood = null;
+		//Find closest GameObject with the tag "Player" using Linq
+		closestPlayer = GameObject.FindGameObjectsWithTag("Player").OrderBy(go => Vector3.Distance(go.transform.position, transform.position)).FirstOrDefault();
+		//Find 2nd closest GameObject with the tag "Enemy". 2nd closest because the closest object is this object itself.
+		closestEnemy = GameObject.FindGameObjectsWithTag("Enemy").OrderBy(go => Vector3.Distance(go.transform.position, transform.position)).ElementAtOrDefault(1);
+		//Find closest GameObject with tag "Pickup"
+		closestFood = GameObject.FindGameObjectsWithTag("Pickup").OrderBy(go => Vector3.Distance(go.transform.position, transform.position)).FirstOrDefault();
+
+		Movement();
+
 		timeSinceDecay += Time.deltaTime;
 		timeSinceEat += Time.deltaTime;
 
@@ -72,27 +92,60 @@ public class EnemyController : MonoBehaviour {
 		}
 	}
 
-	/*void Movement()
+	void Movement()
 	{
-		//Find closest GameObject with the tag "Enemy" using Linq
-		GameObject closestEnemy = GameObject.FindGameObjectsWithTag("Player").OrderBy(go => Vector3.Distance(go.transform.position, transform.position)).FirstOrDefault();
-		
-		//Check the size of the enemy
-		if (closestEnemy.GetComponent<PlayerController>().size < size)
+		target = null;
+		//If the closest player is closer than the closest enemy
+		if (closestPlayer.GetComponent<MeshRenderer>().enabled &&
+			closestPlayer.transform.position.x - transform.position.x < closestEnemy.transform.position.x - transform.position.x &&
+			closestPlayer.transform.position.z - transform.position.z < closestEnemy.transform.position.z - transform.position.z)
 		{
-			//Set the target to the weaker blob
-			target = closestEnemy;
+			if (closestPlayer.GetComponent<PlayerController>().size < size)
+			{
+				//Set the target to the weaker player
+				target = closestPlayer;
+				rb.AddForce((target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			}
+			else if (closestPlayer.GetComponent<PlayerController>().size > size)
+			{
+				target = closestPlayer;
+				//Add force in the opposite direction
+				rb.AddForce(-(target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			} else 
+			{
+				//Set target to food
+				target = closestFood;
+				//Add force towards closestFood
+				rb.AddForce((target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			}
 		}
-
-		//Add force
-		if (target != null)
+		else if (closestEnemy.transform.position.x - transform.position.x < closestPlayer.transform.position.x - transform.position.x &&
+				 closestEnemy.transform.position.z - transform.position.z < closestPlayer.transform.position.z - transform.position.z)
 		{
-			rb.AddForce(target.transform.position * speed);
-		} else
-		{
-			print("Target is null");
+			if (closestEnemy.GetComponent<EnemyController>().size < size)
+			{
+				//Set the target to the weaker enemy
+				target = closestEnemy;
+				rb.AddForce((target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			}
+			//If the enemy is bigger
+			else if (closestEnemy.GetComponent<EnemyController>().size > size)
+			{
+				target = closestEnemy;
+				//Add force in the opposite direction
+				rb.AddForce(-(target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			} else
+			{
+				target = closestFood;
+				rb.AddForce( (target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+			}
 		}
-	}*/
+		else
+		{
+			target = closestFood;
+			rb.AddForce((target.transform.position - transform.position) * (speed / 2) * Time.smoothDeltaTime);
+		}
+	}
 
 	void OnTriggerEnter(Collider other)
 	{
@@ -109,10 +162,9 @@ public class EnemyController : MonoBehaviour {
 		if (other.gameObject.CompareTag("Player") && other.GetComponent<PlayerController>().size < size)
 		{
 			AddSize(other.GetComponent<PlayerController>().size * 2);
-			other.gameObject.SetActive(false);
+			other.gameObject.GetComponent<MeshRenderer>().enabled = false;
+			other.gameObject.GetComponent<PlayerController>().enabled = false;
 
-			//CODE TO LOCK CAMERA ONTO THE BLOB WHO KILLED THE PLAYER
-			//other.GetComponent<PlayerController>().cam.target = this.gameObject;
 			//If the eaten object is the camera's target, set this object to be the target
 			if (player.GetComponent<PlayerController>().cam.target == other.gameObject)
 			{
@@ -124,7 +176,7 @@ public class EnemyController : MonoBehaviour {
 		if (other.gameObject.CompareTag("Enemy") && other.GetComponent<EnemyController>().size < size)
 		{
 			AddSize(other.GetComponent<EnemyController>().size * 2);
-
+			//if the eaten object is the camera's target, set this object to be the target
 			if (player.GetComponent<PlayerController>().cam.target == other.gameObject)
 			{
 				player.GetComponent<PlayerController>().cam.target = this.gameObject;
@@ -175,6 +227,6 @@ public class EnemyController : MonoBehaviour {
 	void AddScale(Vector3 Scale)
 	{
 		//Adjust size of sphere
-		transform.localScale += Vector3.Lerp(transform.localScale, Scale, 2f);
+		transform.localScale += Scale;
 	}
 }
